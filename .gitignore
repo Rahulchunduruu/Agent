@@ -15,3 +15,11 @@ __pycache__/
 
 # Logs
 *.log
+
+# Local files
+daily_news.txt
+chatbot.db
+chatbot.db-shm
+chatbot.db-wal
+credentials.json
+token.json

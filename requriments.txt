@@ -1,9 +1,26 @@
+# LangChain
 langchain
 langchain-core
 langchain-community
 langchain-groq
+langchain-google-community
+
+# LangGraph
 langgraph
-python-dotenv
+langgraph-checkpoint-sqlite
+
+# Tools
 duckduckgo-search
-tavily
+tavily-python
 mem0ai
+markdown
+
+# Google / Gmail
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+
+# UI & Utils
+streamlit
+python-dotenv
+requests
