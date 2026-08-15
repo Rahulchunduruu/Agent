@@ -23,3 +23,15 @@ chatbot.db-shm
 chatbot.db-wal
 credentials.json
 token.json
+
+# Backups
+*.bak
+*.bak2
+*.bak3
+
+# Local test/output files
+weather.txt
+LLM
+
+# Kilo IDE
+.kilo/

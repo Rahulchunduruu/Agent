@@ -1,4 +1,4 @@
-from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.graph import StateGraph, MessagesState
@@ -8,9 +8,16 @@ from config import Config
 from tools import tools_list
 from prompt import prompt1
 import sqlite3
+import os
 
+os.environ["USER_AGENT"] = "MyAgent/1.0"
 # ── LLM ───────────────────────────────────────
-llm = ChatGroq(model="openai/gpt-oss-120b", api_key=Config.Groq_api_key)
+# kimi-k3 brain via TokenRouter's OpenAI-compatible API (LangChain stack)
+llm = ChatOpenAI(
+    model=Config.KIMI_MODEL,
+    api_key=Config.KIMI_API_KEY,
+    base_url=Config.KIMI_BASE_URL,
+)
 llm_with_tools = llm.bind_tools(tools_list)
 
 # ── Agent Node ─────────────────────────────────

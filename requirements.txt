@@ -2,7 +2,7 @@
 langchain
 langchain-core
 langchain-community
-langchain-groq
+langchain-openai
 langchain-google-community
 
 # LangGraph
@@ -14,13 +14,24 @@ duckduckgo-search
 tavily-python
 mem0ai
 markdown
+beautifulsoup4
+ddgs
 
 # Google / Gmail
 google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
 
+# Browser Automation
+browser-use
+playwright
+nest_asyncio
+
 # UI & Utils
 streamlit
 python-dotenv
 requests
+
+#evals
+openai
+deepeval
