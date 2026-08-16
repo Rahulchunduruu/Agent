@@ -1,6 +1,6 @@
 # 🤖 AI Agent Bot
 
-A powerful, tool-calling AI agent built with **LangGraph**, **LangChain**, and **Streamlit**. Powered by the **Kimi K3** model via TokenRouter's OpenAI-compatible API, this agent can search the web, control a browser, send emails, execute code, check weather, and more — all through a clean chat interface.
+A powerful, tool-calling AI agent built with **LangGraph**, **LangChain**, and **Streamlit**. Powered by the **Kimi K3** model via TokenRouter's OpenAI-compatible API, this agent can search the web, control a browser, send emails, execute code, check weather, describe images, and more — all through a clean chat interface.
 
 ---
 
@@ -19,18 +19,21 @@ A powerful, tool-calling AI agent built with **LangGraph**, **LangChain**, and *
 
 | # | Tool | Description |
 |---|------|-------------|
-| 1 | `web_search` | Quick web search via DuckDuckGo |
-| 2 | `web_search_tavily` | Advanced web search with date filtering |
-| 3 | `scrape_webpage` | Extract clean text content from any URL |
-| 4 | `browser_agent` | Control a real browser — click, type, login, navigate |
-| 5 | `file_system` | Execute shell/terminal commands on the local machine |
-| 6 | `code_executor` | Run Python & Bash code safely |
-| 7 | `calculator` | Safe arithmetic evaluation with math functions |
-| 8 | `get_datetime` | Get the current date and time |
-| 9 | `get_weather` | Live weather, humidity, wind & AQI for any city |
-| 10 | `send_email` | Send polished HTML emails via Gmail |
-| 11 | `gmail_search` | Search Gmail inbox with operators |
-| 12 | `gmail_read` | Read full email content by message ID |
+| 1 | `image_describe` | Describe/analyze an image from a local path or URL |
+| 2 | `web_search` | Quick web search via DuckDuckGo |
+| 3 | `web_search_tavily` | Advanced web search with date filtering |
+| 4 | `scrape_webpage` | Extract clean text content from any URL |
+| 5 | `code_executor` | Run Python & Bash code safely |
+| 6 | `file_system` | Execute shell/terminal commands on the local machine |
+| 7 | `write_file` | Write large file content safely (no shell limits) |
+| 8 | `read_file` | Read file contents, optionally line-limited |
+| 9 | `get_datetime` | Get the current date and time |
+| 10 | `calculator` | Safe arithmetic evaluation with math functions |
+| 11 | `get_weather` | Live weather, humidity, wind & AQI for any city |
+| 12 | `send_email` | Send polished HTML emails via Gmail |
+| 13 | `gmail_search` | Search Gmail inbox with operators |
+| 14 | `gmail_read` | Read full email content by message ID |
+| 15 | `browser_agent` | Control a real browser — click, type, login, navigate |
 
 ---
 
@@ -120,7 +123,15 @@ Agent/
 ├── main.py             # LangGraph agent graph + SQLite checkpointer
 ├── config.py           # Environment configuration
 ├── prompt.py           # System prompt for the agent
-├── tools.py            # All 12 tool definitions
+├── tools/              # Tools package, organized by category
+│   ├── __init__.py         # Exports tools_list (all 15 tools)
+│   ├── search_tools.py     # web_search, web_search_tavily, scrape_webpage
+│   ├── file_tools.py       # file_system, write_file, read_file
+│   ├── email_tools.py      # send_email, gmail_search, gmail_read
+│   ├── utility_tools.py    # get_datetime, calculator, get_weather
+│   ├── code_tools.py       # code_executor
+│   ├── browser_tools.py    # browser_agent
+│   └── image_tools.py      # image_describe
 ├── evals.py            # DeepEval evaluation script
 ├── requirements.txt    # Pinned Python dependencies
 ├── setup.sh            # One-command setup (Linux/Mac)
