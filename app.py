@@ -38,6 +38,22 @@ def copy_button(text, theme="dark"):
     st.iframe(html, height=36)
 
 
+def feedback_buttons(index, current_feedback=None, theme="dark"):
+    """Renders compact thumbs-up/thumbs-down feedback buttons below an AI message."""
+    if current_feedback == "up":
+        st.caption("👍 Thanks for your feedback! 🙏")
+        return
+    if current_feedback == "down":
+        st.caption("👎 Thanks — we'll keep improving! 🙏")
+        return
+    col1, col2, _ = st.columns([0.55, 0.55, 8.9])
+    if col1.button("👍", key="fb_up_{}".format(index), help="Good response"):
+        st.session_state.messages[index]["feedback"] = "up"
+        st.rerun()
+    if col2.button("👎", key="fb_down_{}".format(index), help="Bad response"):
+        st.session_state.messages[index]["feedback"] = "down"
+        st.rerun()
+
 
 # ---- Welcome screen with suggestion chips (shown when conversation is empty) ----
 SUGGESTIONS = [
@@ -103,7 +119,7 @@ with st.sidebar:
     st.divider()
     st.caption("🤖 Powered by Rahul")
 
-for msg in st.session_state.messages:
+for msg_index, msg in enumerate(st.session_state.messages):
     with st.chat_message(msg["role"]):
         if msg.get("error"):
             st.error(msg["content"])
@@ -111,6 +127,7 @@ for msg in st.session_state.messages:
             st.markdown(msg["content"])
             if msg["role"] == "assistant":
                 copy_button(msg["content"], st.session_state.theme)
+                feedback_buttons(msg_index, msg.get("feedback"), st.session_state.theme)
 
 # Show welcome screen + suggestion chips when the conversation is empty
 if not st.session_state.messages and not st.session_state.get("pending_input"):
@@ -276,9 +293,10 @@ def run_agent_turn(user_input):
         else:
             st.error(reply)
 
-    st.session_state.messages.append({"role": "assistant", "content": reply, "error": had_error})
+    st.session_state.messages.append({"role": "assistant", "content": reply, "error": had_error, "feedback": None})
     if not had_error:
         copy_button(reply, st.session_state.theme)
+        feedback_buttons(len(st.session_state.messages) - 1, None, st.session_state.theme)
     return reply, had_error
 
 
