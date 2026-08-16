@@ -1,4 +1,5 @@
 import json
+import time
 import streamlit as st
 import streamlit.components.v1 as components
 from langchain_core.messages import HumanMessage
@@ -95,11 +96,47 @@ def extract_text(content):
     return str(content or "")
 
 
+def _parse_args_nicely(args_raw):
+    """Parse accumulated tool-call args (streamed JSON fragments) into a dict when possible."""
+    if not args_raw:
+        return None
+    if isinstance(args_raw, (dict, list)):
+        return args_raw
+    try:
+        return json.loads(args_raw)
+    except Exception:
+        return args_raw if str(args_raw).strip() else None
+
+
 def run_agent_turn(user_input):
     full_reply = ""
     text_placeholder = None
-    tool_calls_shown = set()
+    active_tools = {}      # key -> {"status": widget, "start": time, "name": str, "args": str}
+    completed_keys = set()
     had_error = False
+
+    def find_entry_for_result(tool_name, tool_call_id):
+        """Match a ToolMessage back to its tool-call status widget."""
+        if tool_call_id and tool_call_id in active_tools and tool_call_id not in completed_keys:
+            return tool_call_id
+        for key, entry in active_tools.items():
+            if key not in completed_keys and entry.get("name") == tool_name:
+                return key
+        return None
+
+    def close_stale_tools():
+        """Mark any tool still showing as 'running' as failed (avoids stuck spinners)."""
+        for key, entry in active_tools.items():
+            if key not in completed_keys:
+                completed_keys.add(key)
+                try:
+                    entry["status"].update(
+                        label="⚠️ {} — no result received".format(entry.get("name") or "tool"),
+                        state="error",
+                        expanded=False,
+                    )
+                except Exception:
+                    pass
 
     try:
         for chunk, metadata in chat_workflow.stream(
@@ -109,25 +146,66 @@ def run_agent_turn(user_input):
         ):
             node = metadata.get("langgraph_node", "") if isinstance(metadata, dict) else ""
 
+            # ---- Tool call started (args stream in as chunks) ----
             tool_call_chunks = getattr(chunk, "tool_call_chunks", None)
             if node == "agent" and tool_call_chunks:
                 for tc in tool_call_chunks:
                     name = tc.get("name") if isinstance(tc, dict) else getattr(tc, "name", None)
-                    if name and name not in tool_calls_shown:
-                        tool_calls_shown.add(name)
-                        with st.expander("🔧 Calling tool: " + str(name)):
-                            args = tc.get("args") if isinstance(tc, dict) else getattr(tc, "args", None)
-                            if isinstance(args, dict) and args:
-                                st.json(args)
-                            else:
-                                st.caption("Running...")
+                    tc_id = tc.get("id") if isinstance(tc, dict) else getattr(tc, "id", None)
+                    index = tc.get("index") if isinstance(tc, dict) else getattr(tc, "index", None)
+                    args_chunk = tc.get("args") if isinstance(tc, dict) else getattr(tc, "args", None)
 
+                    if not name and not tc_id:
+                        continue
+                    key = tc_id or "{}_{}".format(name or "tool", index if index is not None else 0)
+
+                    if key not in active_tools:
+                        active_tools[key] = {
+                            "status": st.status("🔧 Running: {}...".format(name or "tool"), expanded=False),
+                            "start": time.time(),
+                            "name": name,
+                            "args": "",
+                        }
+                    entry = active_tools[key]
+                    if name and not entry["name"]:
+                        entry["name"] = name
+                    if args_chunk:
+                        entry["args"] += args_chunk if isinstance(args_chunk, str) else json.dumps(args_chunk)
+
+            # ---- Tool result arrived -> complete the status widget ----
             if getattr(chunk, "type", "") == "tool":
                 tool_name = getattr(chunk, "name", "tool") or "tool"
+                tool_call_id = getattr(chunk, "tool_call_id", None)
                 result_text = extract_text(getattr(chunk, "content", ""))
-                with st.expander("📥 Result from " + str(tool_name)):
-                    st.code(result_text[:1500], language=None)
 
+                key = find_entry_for_result(tool_name, tool_call_id)
+                if key is not None:
+                    entry = active_tools[key]
+                    completed_keys.add(key)
+                    elapsed = time.time() - entry["start"]
+                    widget = entry["status"]
+
+                    parsed_args = _parse_args_nicely(entry["args"])
+                    with widget:
+                        if parsed_args:
+                            st.markdown("**Input:**")
+                            if isinstance(parsed_args, (dict, list)):
+                                st.json(parsed_args)
+                            else:
+                                st.code(str(parsed_args)[:800], language=None)
+                        st.markdown("**Output:**")
+                        st.code(result_text[:1500], language=None)
+                    widget.update(
+                        label="✅ {} — done in {:.1f}s".format(tool_name, elapsed),
+                        state="complete",
+                        expanded=False,
+                    )
+                else:
+                    # Result with no matching call widget (safety fallback)
+                    with st.status("✅ {}".format(tool_name), state="complete", expanded=False):
+                        st.code(result_text[:1500], language=None)
+
+            # ---- Assistant text streaming ----
             if node == "agent":
                 content = getattr(chunk, "content", "")
                 if isinstance(content, list):
@@ -137,6 +215,8 @@ def run_agent_turn(user_input):
                         text_placeholder = st.empty()
                     full_reply += content
                     text_placeholder.markdown(full_reply + "▌")
+
+        close_stale_tools()
 
         if full_reply.strip():
             reply = full_reply.strip()
@@ -153,6 +233,7 @@ def run_agent_turn(user_input):
                 st.error(reply)
 
     except Exception as e:
+        close_stale_tools()
         had_error = True
         reply = "Error generating response: {}".format(e)
         if text_placeholder is not None:
