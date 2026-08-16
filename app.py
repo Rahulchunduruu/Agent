@@ -15,6 +15,24 @@ def apply_theme(theme):
     st.markdown(css, unsafe_allow_html=True)
 
 
+def apply_font_size(size):
+    """Applies an accessibility font-size scale across the whole app."""
+    scales = {"Small": "0.85", "Normal": "1.0", "Large": "1.2"}
+    scale = scales.get(size, "1.0")
+    css = (
+        "<style>"
+        "html { font-size: calc(16px * " + scale + "); }"
+        '[data-testid="stMarkdownContainer"], [data-testid="stChatMessage"] { '
+        "font-size: calc(1rem * " + scale + "); }"
+        '[data-testid="stChatInput"] textarea { font-size: calc(1rem * ' + scale + "); }"
+        '[data-testid="stSidebar"] { font-size: calc(0.9rem * ' + scale + "); }"
+        '[data-testid="stCaptionContainer"] { font-size: calc(0.8rem * ' + scale + "); }"
+        "button { font-size: calc(0.9rem * " + scale + "); }"
+        "</style>"
+    )
+    st.markdown(css, unsafe_allow_html=True)
+
+
 def copy_button(text, theme="dark"):
     """Renders a compact copy-to-clipboard button below an AI message."""
     escaped = json.dumps(text)
@@ -104,8 +122,11 @@ if "theme" not in st.session_state:
     st.session_state.theme = "dark"
 if "pending_input" not in st.session_state:
     st.session_state.pending_input = None
+if "font_size" not in st.session_state:
+    st.session_state.font_size = "Normal"
 
 apply_theme(st.session_state.theme)
+apply_font_size(st.session_state.font_size)
 
 with st.sidebar:
     st.header("⚙️ Panel")
@@ -113,6 +134,14 @@ with st.sidebar:
     if st.button(theme_label, key="theme_toggle"):
         st.session_state.theme = "light" if st.session_state.theme == "dark" else "dark"
         st.rerun()
+    st.divider()
+    st.session_state.font_size = st.radio(
+        "🔤 Font Size",
+        ["Small", "Normal", "Large"],
+        index=["Small", "Normal", "Large"].index(st.session_state.font_size),
+        horizontal=True,
+        key="font_size_selector",
+    )
     st.divider()
     if st.button("🗑️ Clear Conversation"):
         st.session_state.messages = []
