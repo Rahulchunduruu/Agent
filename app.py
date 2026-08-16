@@ -105,8 +105,48 @@ def render_welcome_screen():
             st.rerun()
 
 
+# ---- Gradient animated title + hidden Streamlit branding ----
+BRANDING_CSS = (
+    "<style>"
+    "#MainMenu {visibility: hidden;}"          # hamburger menu (top-right)
+    "footer {visibility: hidden;}"              # 'Built with Streamlit' footer
+    '[data-testid="stHeader"] {visibility: hidden;}'  # deploy/share header bar
+    '[data-testid="stToolbar"] {visibility: hidden;}' # toolbar icons
+    "</style>"
+)
+
+
+def render_title():
+    """Renders an animated gradient app title with a subtitle."""
+    st.markdown(
+        """
+        <div style="text-align:center; padding: 6px 0 2px;">
+            <h1 style="
+                background: linear-gradient(90deg, #ff4b4b, #ff8c42, #6a5cff, #ff4b4b);
+                background-size: 300% auto;
+                -webkit-background-clip: text;
+                background-clip: text;
+                -webkit-text-fill-color: transparent;
+                color: transparent;
+                animation: titleShine 6s linear infinite;
+                font-weight: 800;
+                letter-spacing: -0.5px;
+                margin-bottom: 2px;">
+                🤖 AI Agent Bot
+            </h1>
+            <p style="opacity: 0.6; margin-top: -6px; font-size: 14px;">
+                Your multi-tool AI assistant — search, files, email, weather & more
+            </p>
+        </div>
+        <style>
+            @keyframes titleShine { to { background-position: 300% center; } }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 st.set_page_config(page_title="AI Agent Bot", page_icon="🤖", layout="wide")
-st.title("🤖 AI Agent Bot")
+render_title()
+st.markdown(BRANDING_CSS, unsafe_allow_html=True)
 
 if chat_workflow is None:
     st.error("Unable to start the AI agent workflow.")
@@ -127,6 +167,7 @@ if "font_size" not in st.session_state:
 
 apply_theme(st.session_state.theme)
 apply_font_size(st.session_state.font_size)
+st.markdown(BRANDING_CSS, unsafe_allow_html=True)
 
 with st.sidebar:
     st.header("⚙️ Panel")
