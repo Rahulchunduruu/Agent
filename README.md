@@ -26,7 +26,7 @@ A powerful, tool-calling AI agent built with **LangGraph**, **LangChain**, and *
 | 5 | `file_system` | Execute shell/terminal commands on the local machine |
 | 6 | `code_executor` | Run Python & Bash code safely |
 | 7 | `calculator` | Safe arithmetic evaluation with math functions |
-| 8 | `get_datetime` | Get current date and time |
+| 8 | `get_datetime` | Get the current date and time |
 | 9 | `get_weather` | Live weather, humidity, wind & AQI for any city |
 | 10 | `send_email` | Send polished HTML emails via Gmail |
 | 11 | `gmail_search` | Search Gmail inbox with operators |
@@ -38,7 +38,7 @@ A powerful, tool-calling AI agent built with **LangGraph**, **LangChain**, and *
 
 ### Prerequisites
 
-- Python 3.10+
+- **Python 3.11+** (required — `browser-use` needs ≥3.11)
 - A [TokenRouter](https://tokenrouter.com) API key
 - Gmail OAuth2 credentials (`credentials.json`)
 - OpenWeatherMap API key
@@ -46,22 +46,46 @@ A powerful, tool-calling AI agent built with **LangGraph**, **LangChain**, and *
 
 ### Installation
 
+#### ⚡ Quick Setup (Recommended)
+
+A one-command setup script handles everything — virtual environment, pinned dependencies, **and Playwright browser binaries**:
+
 ```bash
 # Clone the repository
 git clone git@github.com:Rahulchunduruu/Agent.git
 cd Agent
 
+# Linux / Mac
+bash setup.sh
+
+# Windows
+setup.bat
+```
+
+The setup script automatically:
+1. ✅ Creates a virtual environment (`.venv`)
+2. ✅ Installs all **pinned** dependencies from `requirements.txt`
+3. ✅ Installs Playwright **Chromium browser binaries** (`playwright install chromium`)
+4. ✅ Installs system dependencies (`playwright install-deps chromium` — Linux only)
+
+#### 🔧 Manual Setup
+
+```bash
 # Create virtual environment
 python -m venv .venv
 .venv\Scripts\activate    # Windows
 # source .venv/bin/activate  # Linux/Mac
 
-# Install dependencies
+# Install pinned dependencies
 pip install -r requirements.txt
 
-# Install Playwright browsers (for web scraping)
+# ⚠️ IMPORTANT: pip does NOT install Playwright browser binaries.
+# You MUST run these separately or scrape_webpage/browser tools will fail:
 playwright install chromium
+playwright install-deps chromium   # Linux only (system libraries)
 ```
+
+> 📌 **Note:** All dependencies in `requirements.txt` are **pinned to exact versions** for reproducible deployments across machines and VMs.
 
 ### Environment Setup
 
@@ -98,7 +122,9 @@ Agent/
 ├── prompt.py           # System prompt for the agent
 ├── tools.py            # All 12 tool definitions
 ├── evals.py            # DeepEval evaluation script
-├── requirements.txt    # Python dependencies
+├── requirements.txt    # Pinned Python dependencies
+├── setup.sh            # One-command setup (Linux/Mac)
+├── setup.bat           # One-command setup (Windows)
 ├── .gitignore          # Git ignore rules
 └── .env                # API keys (NOT committed)
 ```
@@ -136,7 +162,7 @@ python evals.py
 | Web Scraping | Playwright + BeautifulSoup |
 | Email | Gmail API (OAuth2) |
 | Weather | OpenWeatherMap API |
-| Search | DuckDuckGo + Tavily |
+| Search | DuckDuckGo (ddgs) + Tavily |
 
 ---
 

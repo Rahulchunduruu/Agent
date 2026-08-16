@@ -2,6 +2,15 @@ import streamlit as st
 from langchain_core.messages import HumanMessage
 from main import chat_workflow
 
+LIGHT_CSS = '<style> html { --background-color:#ffffff; --secondary-background-color:#f0f2f6; --text-color:#262730; --primary-color:#ff4b4b; } [data-testid=stAppViewContainer]{background-color:#ffffff;} [data-testid=stSidebar]{background-color:#f0f2f6;} [data-testid=stSidebar]>div{background-color:#f0f2f6;} [data-testid=stChatMessage]{background-color:#f0f2f6; color:#262730;} [data-testid=stChatInput] textarea{background-color:#ffffff; color:#262730;} [data-testid=stMarkdownContainer]{color:#262730;} h1,h2,h3,h4,h5,h6{color:#262730;} </style>'
+
+DARK_CSS = '<style> html { --background-color:#0e1117; --secondary-background-color:#262730; --text-color:#fafafa; --primary-color:#ff4b4b; } [data-testid=stAppViewContainer]{background-color:#0e1117;} [data-testid=stSidebar]{background-color:#0e1117;} [data-testid=stSidebar]>div{background-color:#0e1117;} [data-testid=stChatMessage]{background-color:#262730; color:#fafafa;} [data-testid=stChatInput] textarea{background-color:#0e1117; color:#fafafa;} [data-testid=stMarkdownContainer]{color:#fafafa;} h1,h2,h3,h4,h5,h6{color:#fafafa;} </style>'
+
+def apply_theme(theme):
+    css = LIGHT_CSS if theme == 'light' else DARK_CSS
+    st.markdown(css, unsafe_allow_html=True)
+
+
 st.set_page_config(page_title="AI Agent Bot", page_icon="🤖", layout="wide")
 st.title("🤖 AI Agent Bot")
 
@@ -15,15 +24,24 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "retry_requested" not in st.session_state:
     st.session_state.retry_requested = False
+if "theme" not in st.session_state:
+    st.session_state.theme = "dark"
+
+apply_theme(st.session_state.theme)
 
 with st.sidebar:
     st.header("⚙️ Panel")
+    theme_label = "☀️ Light Mode" if st.session_state.theme == "dark" else "🌙 Dark Mode"
+    if st.button(theme_label, key="theme_toggle"):
+        st.session_state.theme = "light" if st.session_state.theme == "dark" else "dark"
+        st.rerun()
+    st.divider()
     if st.button("🗑️ Clear Conversation"):
         st.session_state.messages = []
         st.session_state.retry_requested = False
         st.rerun()
     st.divider()
-    st.caption("🤖 Powered by Kimi K3")
+    st.caption("🤖 Powered by Rahul")
 
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):

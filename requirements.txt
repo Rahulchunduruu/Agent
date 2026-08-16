@@ -1,37 +1,50 @@
-# LangChain
-langchain
-langchain-core
-langchain-community
-langchain-openai
-langchain-google-community
+# ==============================================================
+# AI Agent Bot - Pinned Dependencies
+# Python 3.11+ required (browser-use needs >=3.11)
+# ==============================================================
 
-# LangGraph
-langgraph
-langgraph-checkpoint-sqlite
+# --- LangChain ---
+langchain==1.3.14
+langchain-core==1.5.3
+langchain-community==0.4.2
+langchain-openai==1.4.2
+langchain-google-community==5.0.0
 
-# Tools
-duckduckgo-search
-tavily-python
-mem0ai
-markdown
-beautifulsoup4
-ddgs
+# --- LangGraph ---
+langgraph==1.2.10
+langgraph-checkpoint-sqlite==3.1.1
 
-# Google / Gmail
-google-api-python-client
-google-auth-httplib2
-google-auth-oauthlib
+# --- Tools ---
+# NOTE: duckduckgo-search removed (deprecated). langchain-community now uses 'ddgs'.
+tavily-python==0.7.27
+mem0ai==2.0.17
+markdown==3.10.3
+beautifulsoup4==4.15.0
+ddgs==9.14.4
 
-# Browser Automation
-browser-use
-playwright
-nest_asyncio
+# --- Google / Gmail ---
+google-api-python-client==2.198.0
+google-auth-httplib2==0.4.1
+google-auth-oauthlib==1.4.0
 
-# UI & Utils
-streamlit
-python-dotenv
-requests
+# --- Browser Automation ---
+browser-use==0.11.13
+playwright==1.62.0
+nest_asyncio==1.6.0
 
-#evals
-openai
-deepeval
+# --- UI & Utils ---
+streamlit==1.61.1
+python-dotenv==1.2.2
+requests==2.34.2
+
+# --- Evals ---
+openai==2.53.0
+deepeval==4.1.7
+
+# ==============================================================
+# IMPORTANT: pip does NOT install Playwright browser binaries.
+# After 'pip install -r requirements.txt', you MUST run:
+#   playwright install chromium
+#   playwright install-deps chromium   (Linux only - system libraries)
+# Or simply run: setup.sh (Linux/Mac) / setup.bat (Windows)
+# ==============================================================
