@@ -3,6 +3,8 @@ import time
 import streamlit as st
 from langchain_core.messages import HumanMessage
 from main import chat_workflow
+from config import Config
+from tools import tools_list
 
 LIGHT_CSS = '<style> html { --background-color:#ffffff; --secondary-background-color:#f0f2f6; --text-color:#262730; --primary-color:#ff4b4b; } [data-testid=stAppViewContainer]{background-color:#ffffff;} [data-testid=stSidebar]{background-color:#f0f2f6;} [data-testid=stSidebar]>div{background-color:#f0f2f6;} [data-testid=stChatMessage]{background-color:#f0f2f6; color:#262730;} [data-testid=stChatInput] textarea{background-color:#ffffff; color:#262730;} [data-testid=stMarkdownContainer]{color:#262730;} h1,h2,h3,h4,h5,h6{color:#262730;} </style>'
 
@@ -116,6 +118,11 @@ with st.sidebar:
         st.session_state.messages = []
         st.session_state.retry_requested = False
         st.rerun()
+    st.divider()
+    st.subheader("📊 Stats")
+    st.caption("💬 Messages: {}".format(len(st.session_state.messages)))
+    st.caption("🛠️ Tools: {} available".format(len(tools_list)))
+    st.caption("🧠 Model: {}".format(Config.KIMI_MODEL))
     st.divider()
     st.caption("🤖 Powered by Rahul")
 
