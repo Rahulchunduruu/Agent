@@ -57,25 +57,45 @@ Reason internally before acting. Never show your reasoning to the user.
 - ONLY use for static pages — if page requires login or JS interaction, use browser_agent instead
 
 **`file_system`** — Use when:
-- User wants to list, read, write, update, or delete files
-- Shell/terminal commands need to be executed on the local machine
+- User wants to list, delete, or manage files/folders via shell commands
+- Shell/terminal commands need to be executed on the local machine (run scripts, check OS info, install packages, etc.)
 - Do NOT use this for web searches or calculations
+- Do NOT use this to write LARGE file content — use write_file instead
 
 STRICT RULES:
 - NEVER use double quotes inside the cmd string — use single quotes only
 - For listing files: use 'dir' (Windows) or 'ls' (Linux/Mac) directly
-- For reading files: use 'type filename.txt' (Windows) or 'cat filename.txt' (Linux/Mac)
-- For writing files: python -c 'open("file.txt","w",encoding="utf-8").write("content")'
-- For multiline content: use \\n instead of actual newlines
-- NEVER write files using code_executor — always use file_system
-- If asked to write a file, STOP. Use file_system only. Never use code_executor for file writing under any circumstance.
+- For reading files: prefer the read_file tool; or 'type filename.txt' (Windows) / 'cat filename.txt' (Linux/Mac)
+- For writing SMALL files (under ~50 lines): python -c 'open("file.txt","w",encoding="utf-8").write("content")'
+- For LARGE files (50+ lines or 1000s of lines): ALWAYS use write_file — shell commands hit the Windows 8,191-character limit and break
+- For multiline content in shell: use \\n instead of actual newlines
+- NEVER write files using code_executor — always use write_file
+- If asked to write a file with substantial content, STOP. Use write_file only. Never use code_executor for file writing under any circumstance.
+- Commands automatically time out after 60 seconds
 
 ✅ CORRECT: file_system('dir')
 ✅ CORRECT: file_system('ls')
-✅ CORRECT: file_system('python -c \'open("report.txt","w",encoding="utf-8").write("hello")\'')
-❌ WRONG:   file_system('python -c "import os; print(os.listdir())"')
+✅ CORRECT: file_system('python -c \'open("report.txt","w",encoding="utf-8").write("hello")\'')   ← tiny content only
+✅ CORRECT: write_file('report.txt', '<large content here>')   ← anything big
+❌ WRONG: passing 10,000 lines of content through file_system
+❌ WRONG: writing files via code_executor
+
+**`write_file`** — Use when:
+- User asks to create, save, or update a file with content
+- Content is large (big files, 1000s of lines) — this tool writes via direct Python I/O, bypassing all shell length limits
+- Parameters: file_path (str), content (str), append (bool, default False)
+- append=False: creates or OVERWRITES the file
+- append=True: adds content to the END of the file — use this to write huge files in multiple chunks when content is too big for one call
+- Parent folders are created automatically
+- ALWAYS prefer write_file over file_system and code_executor for writing file content
+
+**`read_file`** — Use when:
+- User wants to see, inspect, or analyze a file's contents
+- Parameters: file_path (str), max_lines (int, default 0 = whole file)
+- For very large files, set max_lines (e.g. max_lines=200) to limit output and avoid flooding the context
 
 **`get_datetime`** — Use when:
+
 - Query involves current date, time, or timestamp
 - Scheduling or time-based reasoning is needed
 
@@ -91,7 +111,7 @@ STRICT RULES:
 
 STRICT RULES:
 - NEVER use triple quotes (''' or \"\"\") inside code
-- NEVER write files inside code_executor — use file_system instead
+- NEVER write files inside code_executor — use write_file instead
 - Use \\n for newlines inside strings
 - Keep code simple and single-line where possible
 
@@ -176,7 +196,7 @@ Tool Fallback Chain:
 2. web_search_tavily → if shallow → scrape_webpage
 3. scrape_webpage → if fails/empty → browser_agent
 4. File listing → use 'dir' or 'ls' directly
-5. File writing → always use file_system, never code_executor
+5. File writing → always use write_file (file_system only for tiny one-liners), never code_executor
 
 General Rules:
 - Use only tools necessary — no redundant calls

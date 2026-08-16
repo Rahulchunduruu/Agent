@@ -1,4 +1,6 @@
+import json
 import streamlit as st
+import streamlit.components.v1 as components
 from langchain_core.messages import HumanMessage
 from main import chat_workflow
 
@@ -9,6 +11,32 @@ DARK_CSS = '<style> html { --background-color:#0e1117; --secondary-background-co
 def apply_theme(theme):
     css = LIGHT_CSS if theme == 'light' else DARK_CSS
     st.markdown(css, unsafe_allow_html=True)
+
+
+def copy_button(text, theme="dark"):
+    """Renders a compact copy-to-clipboard button below an AI message."""
+    escaped = json.dumps(text)
+    if theme == "light":
+        bg, fg, border = "#ffffff", "#262730", "#c9c9c9"
+    else:
+        bg, fg, border = "#0e1117", "#fafafa", "#3f4451"
+    html = (
+        '<button id="copyBtn" style="background:' + bg + '; color:' + fg +
+        '; border:1px solid ' + border + '; border-radius:6px; padding:3px 10px;'
+        ' font-size:12px; cursor:pointer; font-family:sans-serif;">📋 Copy</button>'
+        '<script>'
+        'var text = ' + escaped + ';'
+        'var btn = document.getElementById("copyBtn");'
+        'function showDone(){ btn.innerHTML = "✅ Copied!"; setTimeout(function(){ btn.innerHTML = "📋 Copy"; }, 1500); }'
+        'function fallback(){ var ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.focus(); ta.select(); try { document.execCommand("copy"); showDone(); } catch(e) { btn.innerHTML = "❌ Failed"; } document.body.removeChild(ta); }'
+        'btn.addEventListener("click", function(){'
+        ' if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(text).then(showDone).catch(fallback); }'
+        ' else { fallback(); }'
+        '});'
+        '</script>'
+    )
+    components.html(html, height=36)
+
 
 
 st.set_page_config(page_title="AI Agent Bot", page_icon="🤖", layout="wide")
@@ -49,6 +77,8 @@ for msg in st.session_state.messages:
             st.error(msg["content"])
         else:
             st.markdown(msg["content"])
+            if msg["role"] == "assistant":
+                copy_button(msg["content"], st.session_state.theme)
 
 
 def extract_text(content):
@@ -131,6 +161,8 @@ def run_agent_turn(user_input):
             st.error(reply)
 
     st.session_state.messages.append({"role": "assistant", "content": reply, "error": had_error})
+    if not had_error:
+        copy_button(reply, st.session_state.theme)
     return reply, had_error
 
 
