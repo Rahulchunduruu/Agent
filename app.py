@@ -39,6 +39,36 @@ def copy_button(text, theme="dark"):
 
 
 
+# ---- Welcome screen with suggestion chips (shown when conversation is empty) ----
+SUGGESTIONS = [
+    "🌤️ What's the weather in Guntur?",
+    "🔍 Search the latest AI news",
+    "📂 List files in my project",
+    "🧮 Calculate 15% of 2400",
+    "📧 Check my recent emails",
+    "🏏 Latest sports news",
+]
+
+
+def render_welcome_screen():
+    """Shows a friendly greeting + clickable suggestion chips when the chat is empty."""
+    st.markdown(
+        """
+        <div style="text-align:center; padding: 30px 0 8px;">
+            <div style="font-size:52px;">👋</div>
+            <h2 style="margin-bottom:4px;">How can I help you today?</h2>
+            <p style="opacity:0.65; margin-top:0;">Pick a suggestion below or type your own question</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    cols = st.columns(2)
+    for i, suggestion in enumerate(SUGGESTIONS):
+        if cols[i % 2].button(suggestion, key="sug_{}".format(i), use_container_width=True):
+            st.session_state.pending_input = suggestion
+            st.rerun()
+
+
 st.set_page_config(page_title="AI Agent Bot", page_icon="🤖", layout="wide")
 st.title("🤖 AI Agent Bot")
 
@@ -54,6 +84,8 @@ if "retry_requested" not in st.session_state:
     st.session_state.retry_requested = False
 if "theme" not in st.session_state:
     st.session_state.theme = "dark"
+if "pending_input" not in st.session_state:
+    st.session_state.pending_input = None
 
 apply_theme(st.session_state.theme)
 
@@ -79,6 +111,10 @@ for msg in st.session_state.messages:
             st.markdown(msg["content"])
             if msg["role"] == "assistant":
                 copy_button(msg["content"], st.session_state.theme)
+
+# Show welcome screen + suggestion chips when the conversation is empty
+if not st.session_state.messages and not st.session_state.get("pending_input"):
+    render_welcome_screen()
 
 
 def extract_text(content):
@@ -255,6 +291,10 @@ def render_retry_button(key):
 
 
 user_input = st.chat_input("Ask your AI agent anything...")
+
+# Pick up input from suggestion-chip clicks
+if not user_input and st.session_state.get("pending_input"):
+    user_input = st.session_state.pop("pending_input")
 
 last_is_error = (
     st.session_state.messages
