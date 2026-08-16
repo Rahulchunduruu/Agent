@@ -1,7 +1,6 @@
 import json
 import time
 import streamlit as st
-import streamlit.components.v1 as components
 from langchain_core.messages import HumanMessage
 from main import chat_workflow
 
@@ -36,7 +35,7 @@ def copy_button(text, theme="dark"):
         '});'
         '</script>'
     )
-    components.html(html, height=36)
+    st.iframe(html, height=36)
 
 
 
